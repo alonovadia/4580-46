@@ -1,0 +1,62 @@
+name: Development Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2.4.4
+        with:
+          node-version: 16
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Static Code Analysis
+        run: npm run lint
+
+      - name: Run Tests
+        run: npm test
+
+      - name: Code Coverage
+        run: npm run coverage
+
+      - name: Build
+        run: npm run build
+
+      - name: Security Scanning
+        run: npm run security-scan
+
+      - name: Release and Versioning
+        run: npm version ${GITHUB_SHA}
+
+      - name: Comment Adding
+        uses: actions/github-script@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { context, github } = require('@actions/github');
+            const { owner, repo } = context.repo;
+            const commentBody = 'Pipeline run completed successfully.';
+            github.issues.createComment({
+              owner,
+              repo,
+              issue_number: context.issue.number,
+              body: commentBody
+            });
+      
+      - name: Deploy
+        run: npm run deploy

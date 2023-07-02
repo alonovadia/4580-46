@@ -136,4 +136,12 @@ export const SigninPage = () => {
         </div>
     )
 }
+
+function signInWithEmailAndPassword(firebaseAuth: any, username: string, password: string) {
+    throw new Error('Function not implemented.');
+}
+
+function createUserWithEmailAndPassword(firebaseAuth: any, username: string, password: string) {
+    throw new Error('Function not implemented.');
+}
 // thanks
