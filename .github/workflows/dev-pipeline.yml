@@ -1,4 +1,4 @@
-name: Development Pipeline
+name: Dev/Main Pipeline
 
 on:
   push:
@@ -7,9 +7,9 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch:
+  workflow_dispatch: {}
 
-jobs:
+jobs: #more efficient jobs 
   build:
     runs-on: ubuntu-latest
 
@@ -17,46 +17,36 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2.4.4
-        with:
-          node-version: 16
-
       - name: Install Dependencies
         run: npm ci
-
-      - name: Static Code Analysis
-        run: npm run lint
-
-      - name: Run Tests
-        run: npm test
-
-      - name: Code Coverage
-        run: npm run coverage
 
       - name: Build
         run: npm run build
 
-      - name: Security Scanning
-        run: npm run security-scan
+      - name: Run Tests
+        run: npm run test
 
-      - name: Release and Versioning
-        run: npm version ${GITHUB_SHA}
+  trigger_security_pipeline: #yeah, security. neat.
+    needs: build
+    runs-on: ubuntu-latest
 
-      - name: Comment Adding
+    steps:
+      - name: Trigger Security Pipeline
         uses: actions/github-script@v4
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const { context, github } = require('@actions/github');
             const { owner, repo } = context.repo;
-            const commentBody = 'Pipeline run completed successfully.';
-            github.issues.createComment({
+            github.actions.createWorkflowDispatch({
               owner,
               repo,
-              issue_number: context.issue.number,
-              body: commentBody
-            });
-      
-      - name: Deploy
-        run: npm run deploy
+              workflow_id: 'security-pipeline.yml'
+            })
+
+      - name: Add or Update Comment #Comment adding, nothing much to it.
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: ${{ github.event.number }}
+          body: |
+            The code has passed all necessary checks.

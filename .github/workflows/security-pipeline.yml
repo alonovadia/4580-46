@@ -1,0 +1,42 @@
+name: Security Pipeline #So.. security. i'm working on understanding that. might be entirely wrong. 
+
+on:
+  workflow_dispatch: {}
+
+jobs: 
+  security_checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Security Scanning
+        uses: github/codeql-action/analyze@v2
+        with:
+          languages: javascript
+
+      - name: Static Code Analysis
+        uses: codeclimate/codeclimate-action@v3
+        with:
+          enable_fixes: true
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./dist/*
+          tag_name: ${{ github.sha }}
+          body: Release ${{ github.sha }}
+
+      - name: Publish Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: my-artifact
+          path: ./path/to/artifact
+
+      - name: Add Comment
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: ${{ github.event.number }}
+          body: |
+            Code has passed all Security checks.
