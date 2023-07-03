@@ -1,9 +1,9 @@
-name: Security Pipeline #So.. security. i'm working on understanding that. might be entirely wrong. 
+name: Security Pipeline #This entire thing might be wrong, who knows. 
 
 on:
   workflow_dispatch: {}
 
-jobs: 
+jobs:
   security_checks:
     runs-on: ubuntu-latest
 
@@ -14,7 +14,7 @@ jobs:
       - name: Security Scanning
         uses: github/codeql-action/analyze@v2
         with:
-          languages: javascript
+          languages: javascript, typescript
 
       - name: Static Code Analysis
         uses: codeclimate/codeclimate-action@v3
@@ -34,9 +34,5 @@ jobs:
           name: my-artifact
           path: ./path/to/artifact
 
-      - name: Add Comment
-        uses: peter-evans/create-or-update-comment@v1
-        with:
-          issue-number: ${{ github.event.number }}
-          body: |
-            Code has passed all Security checks.
+# removed the commenting on the security, idk, felt like its not needed if its required on the main. 
+# added type script in the scanning. 

@@ -1,4 +1,4 @@
-name: Dev/Main Pipeline
+name: Dev/Main Pipeline # call it how you feel like
 
 on:
   push:
@@ -9,8 +9,8 @@ on:
       - main
   workflow_dispatch: {}
 
-jobs: #more efficient jobs 
-  build:
+jobs: #more efficient jobs.  
+  build: 
     runs-on: ubuntu-latest
 
     steps:
@@ -26,11 +26,11 @@ jobs: #more efficient jobs
       - name: Run Tests
         run: npm run test
 
-  trigger_security_pipeline: #yeah, security. neat.
+  trigger_security_pipeline: #Wee security
     needs: build
     runs-on: ubuntu-latest
 
-    steps:
+    steps: #Here are the steps. idk. i had to fix it multiple times by now. 
       - name: Trigger Security Pipeline
         uses: actions/github-script@v4
         with:
@@ -38,13 +38,18 @@ jobs: #more efficient jobs
           script: |
             const { context, github } = require('@actions/github');
             const { owner, repo } = context.repo;
+            const pullRequestNumber = context.payload.number || context.payload.pull_request?.number;
             github.actions.createWorkflowDispatch({
               owner,
               repo,
-              workflow_id: 'security-pipeline.yml'
+              workflow_id: 'security-pipeline.yml',
+              ref: context.ref,
+              inputs: {
+                pull_request_number: pullRequestNumber
+              }
             })
 
-      - name: Add or Update Comment #Comment adding, nothing much to it.
+      - name: Add or Update Comment #commenting or updating a comment
         uses: peter-evans/create-or-update-comment@v1
         with:
           issue-number: ${{ github.event.number }}
